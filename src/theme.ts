@@ -1,5 +1,20 @@
 import { createTheme } from '@mui/material/styles';
 
+// Design tokens for the sidebar shell — not part of the MUI palette,
+// but kept alongside the theme so the two stay visually coordinated.
+export const sidebarTokens = {
+  background: '#0F2B24',
+  backgroundElevated: '#153A31',
+  border: 'rgba(255, 255, 255, 0.08)',
+  textPrimary: '#F2F5F3',
+  textMuted: 'rgba(242, 245, 243, 0.56)',
+  activeBg: 'rgba(61, 217, 175, 0.14)',
+  activeText: '#5CE6BE',
+  hoverBg: 'rgba(255, 255, 255, 0.05)',
+  width: 264,
+  widthCollapsed: 76,
+};
+
 // A confident slate/teal palette for a data-dense analytics tool —
 // deliberately avoiding MUI's default indigo/blue.
 export const theme = createTheme({
@@ -17,7 +32,7 @@ export const theme = createTheme({
       dark: '#9C5D1E',
     },
     background: {
-      default: '#F6F5F1',
+      default: '#F3F2ED',
       paper: '#FFFFFF',
     },
     text: {
@@ -39,7 +54,7 @@ export const theme = createTheme({
     button: { textTransform: 'none', fontWeight: 600 },
   },
   shape: {
-    borderRadius: 10,
+    borderRadius: 12,
   },
   components: {
     MuiPaper: {
@@ -53,7 +68,8 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           border: '1px solid #E4E2DA',
-          boxShadow: 'none',
+          boxShadow: '0 1px 2px rgba(27, 35, 32, 0.04)',
+          transition: 'box-shadow 160ms ease, border-color 160ms ease',
         },
       },
     },
@@ -61,11 +77,24 @@ export const theme = createTheme({
       styleOverrides: {
         head: {
           fontWeight: 700,
-          fontSize: '0.75rem',
+          fontSize: '0.72rem',
           textTransform: 'uppercase',
-          letterSpacing: '0.04em',
+          letterSpacing: '0.05em',
           color: '#5B6B65',
-          backgroundColor: '#F6F5F1',
+          backgroundColor: '#FBFAF7',
+          borderBottom: '1px solid #E4E2DA',
+        },
+        body: {
+          borderBottom: '1px solid #EFEDE6',
+        },
+      },
+    },
+    MuiTableRow: {
+      styleOverrides: {
+        root: {
+          '&:last-of-type td': {
+            borderBottom: 'none',
+          },
         },
       },
     },
@@ -80,6 +109,16 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           boxShadow: 'none',
+        },
+        contained: {
+          '&:hover': { boxShadow: '0 4px 10px rgba(14, 107, 92, 0.24)' },
+        },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#FFFFFF',
         },
       },
     },
