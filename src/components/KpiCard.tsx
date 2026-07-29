@@ -11,13 +11,19 @@ interface KpiCardProps {
 
 export function KpiCard({ label, value, icon, loading, accentColor }: KpiCardProps) {
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card
+      sx={{
+        height: '100%',
+        borderRadius: 3,
+        '&:hover': { boxShadow: '0 8px 24px rgba(27, 35, 32, 0.08)', borderColor: 'transparent' },
+      }}
+    >
       <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box
           sx={{
             width: 48,
             height: 48,
-            borderRadius: 2,
+            borderRadius: 2.5,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
