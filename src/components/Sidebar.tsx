@@ -57,7 +57,7 @@ function NavRow({ item }: { item: NavItem }) {
           sx={{
             height: 18,
             fontSize: '0.62rem',
-            bgcolor: 'rgba(255,255,255,0.08)',
+            bgcolor: 'rgba(255, 0, 0, 0.08)',
             color: sidebarTokens.textMuted,
           }}
         />
@@ -102,7 +102,7 @@ function SidebarContent() {
         </Box>
         <Box sx={{ minWidth: 0 }}>
           <Typography variant="subtitle1" fontWeight={700} lineHeight={1.2} noWrap>
-            Salesforge
+            Sales
           </Typography>
           <Typography variant="caption" sx={{ color: sidebarTokens.textMuted }} noWrap>
             Analytics Dashboard

@@ -1,92 +1,217 @@
 # Sales Analytics Dashboard
 
-A responsive Sales Analytics Dashboard built with React, TypeScript, Vite, TanStack Query, Axios, and Material UI.
+## Overview
+
+The Sales Analytics Dashboard is a responsive web application built using React, TypeScript, and Vite. It provides sales insights through KPI cards and a sales data table with search, filtering, sorting, pagination, and CSV export functionality.
+
+The application is designed with a modular architecture to ensure scalability, maintainability, and code reusability.
+
+---
 
 ## Tech Stack
 
-- **React 19 + TypeScript** — component layer
-- **Vite** — build tooling / dev server
-- **React Router** — routing shell (single dashboard route today, structured to add more)
-- **TanStack Query (React Query)** — server-state caching, background refetch, retries
-- **Axios** — HTTP client with a shared instance and response-error normalization
-- **MUI (Material UI) v7** — component library and theming
-- **MSW (Mock Service Worker)** — mocks the REST API described in the assignment so the app runs standalone without a real backend
+- React
+- TypeScript
+- Vite
+- React Router
+- TanStack Query (React Query)
+- Axios
+- Material UI
 
-## Getting Started
+---
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone <repository-url>
+```
+
+Navigate to the project directory:
+
+```bash
+cd sales-analytics-dashboard
+```
+
+Install dependencies:
 
 ```bash
 npm install
+```
+
+Start the development server:
+
+```bash
 npm run dev
 ```
 
-The app runs at `http://localhost:5173` and is fully functional out of the box: it intercepts network calls to `/api/*` with MSW and serves data from an in-memory generated dataset (~500 orders), so no backend is required to review the implementation.
+The application will be available at:
 
-### Connecting a real backend
-
-The app was built directly against the API contract in the assignment:
-
-- `GET /api/dashboard/summary`
-- `GET /api/sales?page=&limit=&search=&status=&category=&sortBy=&sortOrder=&startDate=&endDate=`
-
-To point at a real backend:
-
-1. Copy `.env.example` to `.env`.
-2. Set `VITE_API_BASE_URL` to your backend's base URL (e.g. `https://api.example.com`).
-3. Set `VITE_USE_MOCK_API=false` to disable MSW.
-
-No other code changes are required — `src/services/salesService.ts` and `src/services/apiClient.ts` are the only places that talk to the network.
-
-### Build
-
-```bash
-npm run build   # type-checks then produces a production build in dist/
-npm run preview # serve the production build locally
+```
+http://localhost:5173
 ```
 
-## Project Structure
+---
+
+## Folder Structure
 
 ```
 src/
- ├── components/     # Presentational + composed UI (KpiCard, SalesTable, filters bar, etc.)
- ├── pages/           # Route-level pages (DashboardPage)
- ├── hooks/           # Data hooks (useSales, useDashboardSummary) + utility hooks (debounce, localStorage)
- ├── services/        # Axios instance + typed API functions
- ├── types/           # Shared TypeScript types/interfaces
- ├── utils/           # Formatting, CSV generation/download helpers
- ├── constants/       # Enumerations, config, storage keys
- └── mocks/           # MSW handlers + generated mock dataset (dev/demo only)
+├── components/
+├── pages/
+├── hooks/
+├── services/
+├── types/
+├── utils/
+├── constants/
+├── context/
+└── assets/
 ```
 
-## Feature Notes
+---
 
-- **KPI cards** — Total Sales, Total Orders, Total Customers, Average Order Value, each with independent loading/error handling.
-- **Search** — debounced (400ms) search across Order ID, Customer Name, and Product Name; resets pagination to page 1.
-- **Filters** — Date range, Order Status, Product Category, all combinable and sent as query params to the server so filtering happens server-side, not client-side.
-- **Sorting** — Order Date, Amount, Quantity, toggled via clickable column headers (`TableSortLabel`), both ascending/descending.
-- **Pagination** — server-side; page size selectable (10/25/50/100).
-- **CSV Export** — exports the *currently filtered* dataset (ignoring pagination) via a dedicated `/api/sales/export`-style call, generated client-side as a downloadable `.csv` file.
-- **Loading state** — skeleton rows sized to the current page size while data is loading, plus skeletons on KPI cards.
-- **Empty state** — friendly message + icon when a filtered query returns zero results.
-- **Error handling** — a shared Axios response interceptor normalizes network errors, timeouts, and 4xx/5xx responses into user-facing messages; both the KPI section and the table surface a Retry action independently (partial failure doesn't take down the whole page).
-- **Bonus features implemented**:
-  - Debounced search
-  - Column visibility toggle (Category / Quantity / Order Date can be hidden)
-  - Filters + column visibility persisted to `localStorage` (survives refresh)
-  - Skeleton loaders (KPI cards + table rows)
-  - Retry button on failed requests
+## Features
 
-## Architecture & Design Decisions
+### Dashboard Summary
 
-- **Server-side everything.** Search, filters, sorting, and pagination are all sent as query parameters and resolved server-side (mocked in MSW using the same logic a real backend would apply), matching the "server-side pagination" requirement and keeping the client fast regardless of dataset size.
-- **TanStack Query as the state layer.** Rather than reaching for Redux/Context for server data, all remote state (summary, sales list) lives in React Query's cache, keyed by the full query-params object. This gives free request de-duplication, caching, retry, and `placeholderData: keepPreviousData` so pagination/sorting doesn't flash an empty table between pages.
-- **Local UI state via small hooks**, not a global store: `useSalesFilters` centralizes filter/pagination state and derives the query-params object consumed by `useSales`, keeping `DashboardPage` a thin composition layer.
-- **Typed API boundary.** All request/response shapes are defined once in `types/sales.ts` and shared by the mock handlers, the service functions, and the components — so the mock layer and a real backend are interchangeable as long as they satisfy the same TypeScript contract.
-- **Errors normalized once**, at the Axios interceptor, so every consumer (KPI cards, table) gets a consistent `{ message, status }` shape instead of re-implementing Axios error parsing per call site.
+Displays the following KPIs:
 
-## Assumptions & Limitations
+- Total Sales
+- Total Orders
+- Total Customers
+- Average Order Value
 
-- The assignment didn't specify exact response shapes, so I defined a `PaginatedResponse<T>` envelope (`{ data, total, page, limit, totalPages }`) for `/api/sales`, and a flat `DashboardSummary` object for `/api/dashboard/summary`. These are documented in `src/types/sales.ts` and easy to adjust to match the real backend's actual response shape.
-- CSV export assumes a backend endpoint that returns the *full* filtered set unpaginated (`/api/sales/export`); if the real backend doesn't expose this, exporting can be adapted to loop over all pages of `/api/sales` instead — flagged as a one-line swap in `services/salesService.ts`.
-- Currency formatting defaults to INR (`en-IN` locale) since no currency was specified; this is centralized in `utils/format.ts` and trivial to change.
-- The mock API introduces a small (~3%) randomized failure rate and a simulated network delay specifically so the loading/error/retry states are visible during review — remove `FAILURE_RATE` logic in `src/mocks/handlers.ts` if you want an always-succeeding demo.
-- Authentication/authorization was out of scope per the brief and isn't implemented.
+### Sales Table
+
+Displays:
+
+- Order ID
+- Customer Name
+- Product Name
+- Category
+- Quantity
+- Amount
+- Order Date
+- Order Status
+
+### Search
+
+Supports searching by:
+
+- Order ID
+- Customer Name
+- Product Name
+
+### Filters
+
+- Date Range
+- Order Status
+- Product Category
+
+Multiple filters can be applied simultaneously.
+
+### Sorting
+
+Sorting is available for:
+
+- Order Date
+- Amount
+- Quantity
+
+Both ascending and descending order are supported.
+
+### Pagination
+
+Server-side pagination is implemented for efficient data loading.
+
+### CSV Export
+
+Exports the currently filtered sales records to a CSV file.
+
+### Loading State
+
+Displays loading indicators while fetching data.
+
+### Empty State
+
+Displays a user-friendly message when no records are found.
+
+### Error Handling
+
+Handles:
+
+- API errors
+- Network failures
+- Invalid responses
+
+Users can retry failed requests.
+
+---
+
+## API Endpoints
+
+Dashboard Summary
+
+```
+GET /api/dashboard/summary
+```
+
+Sales List
+
+```
+GET /api/sales
+```
+
+Supported Query Parameters
+
+```
+page
+limit
+search
+status
+category
+sortBy
+sortOrder
+startDate
+endDate
+```
+
+---
+
+## Project Design
+
+The application follows a component-based architecture.
+
+- Components are reusable and independent.
+- API calls are managed through Axios.
+- Server state is handled using TanStack Query.
+- TypeScript interfaces are used for type safety.
+- The project is organized to support future enhancements and easier maintenance.
+
+---
+
+## Assumptions
+
+- API response format follows the specification provided in the assignment.
+- Currency formatting uses INR.
+- Authentication is outside the scope of this assignment.
+
+---
+
+## Future Enhancements
+
+- Debounced Search
+- Column Visibility Toggle
+- Filter Persistence using Local Storage
+- Skeleton Loaders
+- Retry Functionality
+- Unit Testing
+
+---
+
+## Author
+
+**Aswin Mon M**
+
+React Frontend Developer
