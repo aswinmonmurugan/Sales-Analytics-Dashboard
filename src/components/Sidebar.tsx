@@ -6,23 +6,24 @@ import GroupRoundedIcon from '@mui/icons-material/GroupRounded';
 import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import type { ReactNode } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { sidebarTokens } from '../theme';
 
 interface NavItem {
   label: string;
   icon: ReactNode;
-  active?: boolean;
+  to?: string;
   comingSoon?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', icon: <SpaceDashboardRoundedIcon fontSize="small" />, active: true },
-  { label: 'Orders', icon: <ReceiptLongRoundedIcon fontSize="small" />, comingSoon: true },
-  { label: 'Customers', icon: <GroupRoundedIcon fontSize="small" />, comingSoon: true },
-  { label: 'Reports', icon: <InsightsRoundedIcon fontSize="small" />, comingSoon: true },
+  { label: 'Dashboard', icon: <SpaceDashboardRoundedIcon fontSize="small" />, to: '/' },
+  { label: 'Orders', icon: <ReceiptLongRoundedIcon fontSize="small" />, to: '/orders' },
+  { label: 'Customers', icon: <GroupRoundedIcon fontSize="small" />, to: '/customers' },
+  { label: 'Reports', icon: <InsightsRoundedIcon fontSize="small" />, to: '/reports' },
 ];
 
-function NavRow({ item }: { item: NavItem }) {
+function NavRow({ item, active, onNavigate }: { item: NavItem; active: boolean; onNavigate?: () => void }) {
   const row = (
     <Stack
       direction="row"
@@ -34,20 +35,20 @@ function NavRow({ item }: { item: NavItem }) {
         mx: 1.5,
         borderRadius: 2,
         cursor: item.comingSoon ? 'default' : 'pointer',
-        color: item.active ? sidebarTokens.activeText : sidebarTokens.textMuted,
-        bgcolor: item.active ? sidebarTokens.activeBg : 'transparent',
+        color: active ? sidebarTokens.activeText : sidebarTokens.textMuted,
+        bgcolor: active ? sidebarTokens.activeBg : 'transparent',
         opacity: item.comingSoon ? 0.55 : 1,
         transition: 'background-color 140ms ease, color 140ms ease',
         '&:hover': item.comingSoon
           ? undefined
           : {
-              bgcolor: item.active ? sidebarTokens.activeBg : sidebarTokens.hoverBg,
-              color: item.active ? sidebarTokens.activeText : sidebarTokens.textPrimary,
+              bgcolor: active ? sidebarTokens.activeBg : sidebarTokens.hoverBg,
+              color: active ? sidebarTokens.activeText : sidebarTokens.textPrimary,
             },
       }}
     >
       <Box sx={{ display: 'flex', color: 'inherit' }}>{item.icon}</Box>
-      <Typography variant="body2" fontWeight={item.active ? 700 : 500} color="inherit" sx={{ flexGrow: 1 }}>
+      <Typography variant="body2" fontWeight={active ? 700 : 500} color="inherit" sx={{ flexGrow: 1 }}>
         {item.label}
       </Typography>
       {item.comingSoon && (
@@ -65,16 +66,24 @@ function NavRow({ item }: { item: NavItem }) {
     </Stack>
   );
 
-  return item.comingSoon ? (
-    <Tooltip title="Coming soon" placement="right">
-      <Box>{row}</Box>
-    </Tooltip>
-  ) : (
-    row
+  if (item.comingSoon || !item.to) {
+    return (
+      <Tooltip title="Coming soon" placement="right">
+        <Box>{row}</Box>
+      </Tooltip>
+    );
+  }
+
+  return (
+    <Box component={Link} to={item.to} onClick={onNavigate} sx={{ textDecoration: 'none', display: 'block' }}>
+      {row}
+    </Box>
   );
 }
 
-function SidebarContent() {
+function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+  const location = useLocation();
+
   return (
     <Box
       sx={{
@@ -118,12 +127,15 @@ function SidebarContent() {
       </Typography>
       <Stack spacing={0.5} sx={{ flexGrow: 1 }}>
         {NAV_ITEMS.map((item) => (
-          <NavRow key={item.label} item={item} />
+          <NavRow key={item.label} item={item} active={location.pathname === item.to} onNavigate={onNavigate} />
         ))}
       </Stack>
 
       <Box sx={{ borderTop: `1px solid ${sidebarTokens.border}`, px: 1.5, py: 1.5 }}>
-        <NavRow item={{ label: 'Settings', icon: <SettingsRoundedIcon fontSize="small" />, comingSoon: true }} />
+        <NavRow
+          item={{ label: 'Settings', icon: <SettingsRoundedIcon fontSize="small" />, comingSoon: false, to: '/settings' }}
+          active={false}
+        />
       </Box>
     </Box>
   );
@@ -162,7 +174,7 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
           '& .MuiDrawer-paper': { width: sidebarTokens.width, boxSizing: 'border-box', border: 'none' },
         }}
       >
-        <SidebarContent />
+        <SidebarContent onNavigate={onClose} />
       </Drawer>
     </>
   );
